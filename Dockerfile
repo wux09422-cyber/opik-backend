@@ -1,42 +1,33 @@
-# Dockerfile
+# Use Gradle 8.7
 
-# Stage 1: Build with Gradle and OpenJDK 21
-FROM gradle:7.6.1-jdk21 AS build
+FROM gradle:8.7-jdk21 AS build
 
 WORKDIR /app
-COPY . .
+
+# Copy the gradle files
+COPY gradle gradle
+COPY settings.gradle .
+COPY build.gradle .
+
+# Download the dependencies
 RUN gradle build --no-daemon
 
-# Stage 2: Runtime with Eclipse Temurin 21 JRE
-FROM eclipse-temurin:21-jre
+# Copy the source code
+COPY src ./src
 
-# Install curl for health checks
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+# Build the application
+RUN gradle build --no-daemon
 
-# Create non-root user and set permissions
-RUN addgroup --system appuser && \  
-    adduser --system --ingroup appuser appuser
+# Start a new stage from the base image
+FROM openjdk:21-jdk
 
-# Set working directory
 WORKDIR /app
 
-# Copy the build artifacts from Stage 1
+# Copy the built jar file from the build stage
 COPY --from=build /app/build/libs/*.jar app.jar
 
-# Set proper file permissions
-RUN chown appuser:appuser app.jar
+# Health check command
+HEALTHCHECK CMD curl --fail http://localhost:8080/health || exit 1
 
-# Switch to non-root user
-USER appuser
-
-# Set the environment variable for the port
-ENV PORT=8080
-
-# Expose the port
-EXPOSE $PORT
-
-# Health check endpoint
-HEALTHCHECK CMD curl --fail http://localhost:$PORT/actuator/health || exit 1
-
-# JVM optimization parameters
-ENTRYPOINT [ "java", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=75.0", "-jar", "app.jar" ]
+# Run the application
+CMD ["java", "-jar", "app.jar"]
