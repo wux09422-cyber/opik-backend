@@ -1,0 +1,15 @@
+# Ignore the following files for Docker builds
+
+# Node modules
+node_modules/
+
+# Logs
+logs/
+*.log
+
+# Environment variables
+.env
+
+# Temporary files
+/tmp/
+.DS_Store
