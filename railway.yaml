@@ -1,0 +1,24 @@
+# Railway Configuration
+
+# Use this file to configure your Railway deployment settings.
+
+# Environment Variables
+env:
+  - KEY: YOUR_API_KEY
+    VALUE: your_value
+
+# Build Settings
+build:
+  # Commands to run to build your application
+  command: npm install && npm run build
+
+# Run Settings
+run:
+  # Commands to start your application
+  command: npm start
+
+# Deployment Settings
+deploy:
+  # Specify the branch to deploy
+  branch: main
+  # Add any additional settings here.
